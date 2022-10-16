@@ -73,7 +73,12 @@ class Description:
 
     def append(self, value: Multiple):
         self.values.append(value)
-    
+
+@dataclass 
+class Rule:
+    variable: NonTerminal
+    values: List[Multiple]
+
     def to_string(self) -> str:
         result: str = ""
         index = 0
@@ -82,15 +87,11 @@ class Description:
             index += 1
             if (index != len(self.values)):
                 result += " | "
-        return result
-
-@dataclass 
-class Rule:
-    variable: NonTerminal
-    desc: Description
-
-    def to_string(self) -> str:
-        return "'" + self.variable.value + "'" + " -> " + self.desc.to_string()
+        
+        return "'" + self.variable.value + "'" + " -> " + result
+    
+    def append(self, value: Multiple):
+        self.values.append(value)
 
 @dataclass
 class Ruleset:
@@ -176,7 +177,7 @@ def p_rule(p):
     """
         Rule : NON_TERMINAL ARROW Description END
     """
-    p[0] = Rule(NonTerminal(p[1]), p[3])
+    p[0] = Rule(NonTerminal(p[1]), p[3].values)
 
 def p_description(p):
     """
@@ -223,7 +224,7 @@ def get_terminals(ast: Root) -> Set[Terminal]:
     result: Set[Terminal] = set()
 
     for rule in ast.ruleset.rules:
-        for multiple in rule.desc.values:
+        for multiple in rule.values:
             for single in multiple.values:
                 if (isinstance(single.object, Terminal)):
                     result.add(single.object.value)
@@ -236,7 +237,7 @@ def get_non_terminals(ast: Root) -> Set[NonTerminal]:
     for rule in ast.ruleset.rules:
         result.add(rule.variable.value)
 
-        for multiple in rule.desc.values:
+        for multiple in rule.values:
             for single in multiple.values:
                 if (isinstance(single.object, NonTerminal)):
                     result.add(single.object.value)
@@ -271,10 +272,10 @@ def is_correct_chomsky_value(start: str, expr: Union[Multiple, Single, Descripti
         return all(map(lambda value: is_correct_chomsky_value(start, value), expr.values))
 
 def is_chomsky_normal_form(grammar: Grammar) -> bool:
-    if any(map(lambda rule: rule.variable.value != grammar.ast.start.variable.value and is_empty(rule.desc), grammar.ast.ruleset.rules)):
+    if any(map(lambda rule: rule.variable.value != grammar.ast.start.variable.value and is_empty(Description(rule.values)), grammar.ast.ruleset.rules)):
         return False
 
-    result: bool = all(map(lambda rule : is_correct_chomsky_value(grammar.ast.start.variable.value, rule.desc), grammar.ast.ruleset.rules))
+    result: bool = all(map(lambda rule : is_correct_chomsky_value(grammar.ast.start.variable.value, Description(rule.values)), grammar.ast.ruleset.rules))
     return result
 
 parser = yacc.yacc()
