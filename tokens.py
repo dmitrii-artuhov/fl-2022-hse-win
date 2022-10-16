@@ -1,3 +1,13 @@
+tokens = [
+  "START",
+  "ARROW",
+  "SEPARATOR",
+  "END",
+  "EMPTY",
+  "NON_TERMINAL",
+  "TERMINAL",
+]
+
 token_to_symbol = {
   "START": "=",
   "ARROW": "👉",

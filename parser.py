@@ -1,13 +1,11 @@
-from ast import parse
-from statistics import variance
 import sys
-from tkinter import Variable
 import ply.yacc as yacc
 
 from dataclasses import dataclass
 from typing import List, Sequence, Set, Union
 from functools import reduce
-from lexer import tokens
+import lexer
+from tokens import tokens
 
 
 # Single      : EMPTY
